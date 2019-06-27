@@ -1,0 +1,6 @@
+flask
+flask-sqlalchemy
+flask-restful
+flask-jwt-extended
+marshmallow
+webargs
