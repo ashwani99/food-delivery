@@ -4,3 +4,4 @@ flask-restful
 flask-jwt-extended
 marshmallow
 webargs
+python-dotenv

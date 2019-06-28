@@ -12,6 +12,13 @@ class Role(IntEnum):
     ADMIN = 3
 
 
+priority_name_to_number_map = {
+    'high': 2,
+    'medium': 1,
+    'low': 0
+}
+
+
 class User(db.Model):
     # __tablename__ = 'users'
 
@@ -50,16 +57,25 @@ class User(db.Model):
         raise NotImplementedError
 
     def accept_task(self, task):
-        if self.role == Role.DELIVERY_AGENT:
-            if task not in self.tasks_accepted:
-                self.tasks_accepted.append(task)
-                task.states.append(DeliveryTaskState(task, state='accepted'))
+        # if self.role == Role.DELIVERY_AGENT:
+        # task which is accepted/completed/declined/cancelled cannot be accepted
+        if task in self.tasks_accepted or task.current_state in ('completed', 'declined', 'cancelled'):
+            return False # should raise some exception
+
+        self.tasks_accepted.append(task)
+        task.states.append(DeliveryTaskState(task, state='accepted'))
+        return True
+
+    def complete_task(self, task):
+        raise NotImplementedError
 
     def decline_task(self, task):
-        if self.role == Role.DELIVERY_AGENT:
-            if task in self.tasks_accepted:
-                self.tasks_accepted.remove(task)
-                task.states.append(DeliveryTaskState(task, state='declined'))
+        # if self.role == Role.DELIVERY_AGENT:
+        if task in self.tasks_accepted:
+            self.tasks_accepted.remove(task)
+            task.states.append(DeliveryTaskState(task, state='declined'))
+            return True
+        return False
 
 
 class DeliveryTask(db.Model):

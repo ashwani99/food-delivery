@@ -118,7 +118,30 @@ class DeliveryTaskDetail(Resource):
         task.last_updated_at = datetime.utcnow()
         db.session.add(task)
         db.session.commit()
-        return make_response(jsonify(msg='Sucessfully cancelled task'), 200)
+        return make_response(jsonify(msg='Successfully cancelled task'), 200)
+
+
+class ChangeTaskStateResource(Resource):
+    @jwt_required
+    def post(self, id, new_state):
+        task = DeliveryTask.query.filter_by(id=id, accepted_by=current_user)
+        if task is None:
+            return error_object('Task not found', 404)
+        elif new_state == 'complete':
+            current_user.complete_task(task)
+        elif new_state == 'accept':
+            current_user.accept_task(task)
+        elif new_state == 'decline':
+            current_user.decline_task(task)
+        elif new_state == 'cancel':
+            current_user.cancel_task(task)
+        db.session.add(task)
+        try:
+            db.session.commit()
+            return make_response(jsonify(msg='Success!'), 200)
+        except Exception:
+            return error_object('Error changing state', 500)
+
 
 
 api.add_resource(UserList, '/users')
@@ -126,3 +149,4 @@ api.add_resource(UserResource, '/user/<int:id>')
 api.add_resource(LoginResource, '/login')
 api.add_resource(DeliveryTaskList, '/tasks')
 api.add_resource(DeliveryTaskDetail, '/task/<int:id>')
+api.add_resource(ChangeTaskStateResource, '/task/<int:id>/<str:new_state>')
