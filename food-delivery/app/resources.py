@@ -124,7 +124,10 @@ class DeliveryTaskDetail(Resource):
 class ChangeTaskStateResource(Resource):
     @jwt_required
     def post(self, id, new_state):
-        task = DeliveryTask.query.filter_by(id=id, accepted_by=current_user)
+        if new_state == 'cancel':
+            task = DeliveryTask.query.filter_by(id=id, created_by=current_user)
+        else:
+            task = DeliveryTask.query.filter_by(id=id, accepted_by=current_user)
         if task is None:
             return error_object('Task not found', 404)
         elif new_state == 'complete':
@@ -149,4 +152,23 @@ api.add_resource(UserResource, '/user/<int:id>')
 api.add_resource(LoginResource, '/login')
 api.add_resource(DeliveryTaskList, '/tasks')
 api.add_resource(DeliveryTaskDetail, '/task/<int:id>')
-api.add_resource(ChangeTaskStateResource, '/task/<int:id>/<str:new_state>')
+api.add_resource(ChangeTaskStateResource, '/task/<int:id>/<string:new_state>')
+
+
+# endpoints
+# /login -> getting access token JWT
+
+# for store managers
+# ------------------
+# POST /tasks -> create new task
+# GET /tasks -> get all tasks created by store manager
+# GET /task/<id> -> get particular task detail
+# POST /task/<id>/cancel -> cancel particular task
+ 
+# for delivery agents
+# -------------------
+# GET /tasks/available -> view single new state task with highest priority  ****
+# GET /task/<id> -> get particular task detail
+# POST /task/<id>/decline -> decline a previously accepted task
+# POST /task/<id>/complete -> complete a previously accepted task
+# GET /tasks/<id>/accept -> accept a task
