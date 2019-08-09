@@ -122,7 +122,7 @@ class DeliveryTaskState(db.Model):
     state_name = db.Column(db.String(10), default='new')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    task = db.relationship('DeliveryTask', backref=db.backref('states'), lazy='dynamic', uselist=True)
+    task = db.relationship('DeliveryTask', backref=db.backref('states'))
 
     def __init__(self, task, state='new'):
         self.state_name = state
