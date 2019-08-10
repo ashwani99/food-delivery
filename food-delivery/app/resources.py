@@ -94,12 +94,12 @@ class DeliveryTaskDetail(Resource):
         return DeliveryTaskSchema().dump(task).data, 200
 
     @jwt_required
-    @use_args(DeliveryTaskSchema(exclude=('created_by',)))
+    @use_args(DeliveryTaskSchema(exclude=('created_by', 'states')))
     def put(self, task_args, id):
-        task = DeliveryTask.query.filter_by(id=id, created_by=current_user)
+        task = DeliveryTask.query.filter_by(id=id, created_by=current_user).one()
         if task is None:
             return error_object('Task not found', 404)
-        for key, value in task_args:
+        for key, value in task_args.items():
             setattr(task, key, value)
         task.last_updated_at = datetime.utcnow()
         db.session.add(task)
@@ -108,13 +108,13 @@ class DeliveryTaskDetail(Resource):
 
     @jwt_required
     def delete(self, id):
-        task = DeliveryTask.query.filter_by(id=id, created_by=current_user)
+        task = DeliveryTask.query.filter_by(id=id, created_by=current_user).one()
         if task is None:
             return error_object('Task not found', 404)
-        state = task.last_state
+        state = task.current_state
         if state in ('accepted', 'delivered', 'cancelled'):
             return error_object('Cannot cancel task. Task has already been {}'.format(state), 409)
-        task.states.append(DeliveryTaskState(state_name='cancelled', task=task))
+        task.states.append(DeliveryTaskState(state='cancelled', task=task))
         task.last_updated_at = datetime.utcnow()
         db.session.add(task)
         db.session.commit()
@@ -125,9 +125,9 @@ class ChangeTaskStateResource(Resource):
     @jwt_required
     def post(self, id, new_state):
         if new_state == 'cancel':
-            task = DeliveryTask.query.filter_by(id=id, created_by=current_user)
+            task = DeliveryTask.query.filter_by(id=id, created_by=current_user).one()
         else:
-            task = DeliveryTask.query.filter_by(id=id, accepted_by=current_user)
+            task = DeliveryTask.query.filter_by(id=id, accepted_by=current_user).one()
         if task is None:
             return error_object('Task not found', 404)
         elif new_state == 'complete':

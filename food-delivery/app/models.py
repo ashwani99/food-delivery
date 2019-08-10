@@ -53,7 +53,7 @@ class User(db.Model):
             priority=priority, created_by=self)
         return new_task
 
-    def cancel_tasks(task_ids):
+    def cancel_task(self, task):
         raise NotImplementedError
 
     def accept_task(self, task):
