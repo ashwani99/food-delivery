@@ -1,4 +1,4 @@
 {
     "python.linting.pylintEnabled": false,
-    "python.pythonPath": "venv\\Scripts\\python.exe"
+    "python.pythonPath": "${workspaceFolder}/food-delivery/venv/bin/python"
 }
