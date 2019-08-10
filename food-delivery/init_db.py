@@ -1,15 +1,21 @@
-from app import db
+from app import app, db
 from app.models import User, DeliveryTask, Role
 
 def init_db():
     """Initiates the DB with set of users and tasks"""
 
+    # create all tables
+    with app.app_context():
+        db.create_all()
+
+    # fill DB with set of store managers and delivery agents
     sm1 = User('John Sena', 'john@cena.com', 'johncena', Role.STORE_MANAGER)
     sm2 = User('Tony Stark', 'tony@stark.com', 'tonystark', Role.STORE_MANAGER)
     da1 = User('Agent Vinod', 'agent@vinod.com', 'agentvinod', Role.DELIVERY_AGENT)
     da2 = User('Flash Superhero', 'flash@superhero.com', 'flashsuperhero', Role.DELIVERY_AGENT)
     da3 = User('Spider Man', 'spider@man.com', 'spiderman', Role.DELIVERY_AGENT)
 
+    # create some dummy food delivery tasks
     task1 = sm1.create_delivery_task('Hot Chicken Kathi Roll', 'Down Town', 'medium')
     task2 = sm1.create_delivery_task('Mutton Biryani', 'Home', 'high')
     task3 = sm2.create_delivery_task('Gulab Jamun, Phirni', 'Home', 'low')
