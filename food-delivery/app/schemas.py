@@ -32,6 +32,5 @@ class DeliveryTaskSchema(MetaSctrictModeMixin):
     created_at = fields.DateTime(dump_only=True)
     last_updated_at = fields.DateTime(dump_only=True)
     states = fields.Nested(TaskStateSchema, many=True, dump_only=True)
-    current_state = fields.Str(
-        validate=lambda s: s in ('new', 'accepted', 'completed', 'declined', 'cancelled'))
+    current_state = fields.Nested(TaskStateSchema)
     accepted_by = fields.Integer(required=True, dump_only=True, attribute='accepted_by_user_id')

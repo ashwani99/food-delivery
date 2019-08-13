@@ -107,11 +107,7 @@ class DeliveryTask(db.Model):
 
     @property
     def current_state(self):
-        # print('SKDBASDBJKASDBJKASBDKASBKDJBASJKDBJKASDBJKASBDJKASB')
-        # latest_state = self.states.order_by(DeliveryTaskState.updated_at.desc()).first()
-        # print(latest_state)
-        # return latest_state.state_name
-        return "not implemented"
+        return max(self.states, key=operator.attrgetter('updated_at'))
 
 
 class DeliveryTaskState(db.Model):
