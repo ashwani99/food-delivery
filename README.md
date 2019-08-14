@@ -367,21 +367,6 @@ __Example response__
 }
 ```
 
-##### Cancel a delivery task
-Cancels the delivery task
-
-`DELETE /task/:id`
-
-__Example response__
-
-`DELETE /task/2`
-
-`200 OK`
-```json
-{
-    "msg": "Successfully cancelled task"
-}
-```
 
 #### Change delivery task state
 Changes the state of the delivery task. States can be one of among `new`, `accepted`, `complete`, `decline`, `cancel`

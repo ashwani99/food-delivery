@@ -64,11 +64,13 @@ class UserResource(Resource):
 class DeliveryTaskList(Resource):
     @jwt_required
     def get(self):
-        tasks = DeliveryTask.query
+        query = DeliveryTask.query
         if current_user.role == Role.STORE_MANAGER:
-            tasks = tasks.filter_by(created_by=current_user).all()
+            tasks = query.filter_by(created_by=current_user).all()
         elif current_user.role == Role.DELIVERY_AGENT:
-            tasks = tasks.filter_by(accepted_by=current_user).all()
+            tasks = query.filter_by(accepted_by=current_user).all()
+        elif current_user.role == Role.ADMIN:
+            tasks = query.all()
         else:
             # work-around for the half-baked RBAC system
             # other roles than store-manager and delivery-agents get no tasks
@@ -105,20 +107,6 @@ class DeliveryTaskDetail(Resource):
         db.session.add(task)
         db.session.commit()
         return DeliveryTaskSchema().dump(task).data, 200
-
-    @jwt_required
-    def delete(self, id):
-        task = DeliveryTask.query.filter_by(id=id, created_by=current_user).one()
-        if task is None:
-            return error_object('Task not found', 404)
-        state = task.current_state
-        if state in ('accepted', 'delivered', 'cancelled'):
-            return error_object('Cannot cancel task. Task has already been {}'.format(state), 409)
-        task.states.append(DeliveryTaskState(state='cancelled', task=task))
-        task.last_updated_at = datetime.utcnow()
-        db.session.add(task)
-        db.session.commit()
-        return make_response(jsonify(msg='Successfully cancelled task'), 200)
 
 
 class ChangeTaskStateResource(Resource):
