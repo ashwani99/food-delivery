@@ -57,11 +57,9 @@ class User(db.Model):
         raise NotImplementedError
 
     def accept_task(self, task):
-        # if self.role == Role.DELIVERY_AGENT:
-        # task which is accepted/completed/declined/cancelled cannot be accepted
-        if task in self.tasks_accepted or task.current_state in ('completed', 'declined', 'cancelled'):
-            return False # should raise some exception
-
+        if not task.can_change_state('accepted'):
+            raise Exception('cannot accept task')
+        
         self.tasks_accepted.append(task)
         task.states.append(DeliveryTaskState(task, state='accepted'))
         return True
@@ -108,6 +106,21 @@ class DeliveryTask(db.Model):
     @property
     def current_state(self):
         return max(self.states, key=operator.attrgetter('updated_at'))
+
+    def can_change_state(self, new_state):
+        # contains movable states from current state
+        state_map = {
+            'new': ['accepted', 'cancelled'],
+            'accepted': ['completed', 'declined', 'cancelled'],
+            'completed': [],
+            'declined': ['new'],
+            'cancelled': []
+        }
+
+        if new_state not in state_map[self.current_state.state_name]:
+            return False
+        return True
+    
 
 
 class DeliveryTaskState(db.Model):
