@@ -4,7 +4,7 @@ from flask_jwt_extended import current_user, get_jwt_claims
 
 from functools import wraps
 
-from .models import Role
+from app.models import Role
 
 def error_object(msg, httpcode):
     return make_response(jsonify(error=msg), httpcode)

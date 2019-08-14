@@ -7,10 +7,10 @@ from flask_jwt_extended import jwt_required, current_user
 from datetime import datetime
 
 from app import api, db
-from .models import User, Role, DeliveryTask, DeliveryTaskState
-from .schemas import UserSchema, DeliveryTaskSchema
-from .utils import error_object
-from .auth import LoginResource, requires_role
+from app.models import User, Role, DeliveryTask, DeliveryTaskState
+from app.schemas import UserSchema, DeliveryTaskSchema
+from app.utils import error_object
+from app.auth import LoginResource, requires_role
 
 
 class UserList(Resource):

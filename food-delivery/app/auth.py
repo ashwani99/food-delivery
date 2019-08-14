@@ -5,9 +5,9 @@ from flask import make_response, jsonify
 
 from functools import wraps
 
-from .schemas import LoginSchema
-from .models import User
-from .utils import error_object
+from app.schemas import LoginSchema
+from app.models import User
+from app.utils import error_object
 from app import jwt
 
 
