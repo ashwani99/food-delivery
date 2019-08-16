@@ -11,6 +11,7 @@ from app.models import User, Role, DeliveryTask, DeliveryTaskState
 from app.schemas import UserSchema, DeliveryTaskSchema
 from app.utils import error_object
 from app.auth import LoginResource, requires_role
+from app.services import change_task_state
 
 
 class UserList(Resource):
@@ -90,7 +91,13 @@ class DeliveryTaskList(Resource):
 class DeliveryTaskDetail(Resource):
     @jwt_required
     def get(self, id):
-        task = DeliveryTask.query.filter_by(id=id, created_by=current_user).first()
+        query = DeliveryTask.query
+        if current_user.role == Role.STORE_MANAGER:
+            task = query.filter_by(id=id, created_by=current_user).one()
+        elif current_user.role == Role.DELIVERY_AGENT:
+            task = query.filter_by(id=id, accepted_by=current_user).one()
+        elif current_user.role == Role.ADMIN:
+            task = query.get(id)
         if task is None:
             return error_object('Task not found', 404)
         return DeliveryTaskSchema().dump(task).data, 200
@@ -111,21 +118,17 @@ class DeliveryTaskDetail(Resource):
 
 class ChangeTaskStateResource(Resource):
     @jwt_required
-    def post(self, id, new_state):
-        if new_state == 'cancel':
-            task = DeliveryTask.query.filter_by(id=id, created_by=current_user).one()
-        else:
-            task = DeliveryTask.query.filter_by(id=id, accepted_by=current_user).one()
+    def post(self, id, action):
+        task = DeliveryTask.query.get(id)
         if task is None:
-            return error_object('Task not found', 404)
-        elif new_state == 'complete':
-            current_user.complete_task(task)
-        elif new_state == 'accept':
-            current_user.accept_task(task)
-        elif new_state == 'decline':
-            current_user.decline_task(task)
-        elif new_state == 'cancel':
-            current_user.cancel_task(task)
+            return error_object('Task not found')
+        action_state = {
+            'accept': 'accepted',
+            'complete': 'completed',
+            'decline': 'declined',
+            'cancel': 'cancelled'
+        }
+        task = change_task_state(task, action_state[action])
         db.session.add(task)
         try:
             db.session.commit()
@@ -140,7 +143,7 @@ api.add_resource(UserResource, '/user/<int:id>')
 api.add_resource(LoginResource, '/login')
 api.add_resource(DeliveryTaskList, '/tasks')
 api.add_resource(DeliveryTaskDetail, '/task/<int:id>')
-api.add_resource(ChangeTaskStateResource, '/task/<int:id>/<string:new_state>')
+api.add_resource(ChangeTaskStateResource, '/task/<int:id>/<string:action>')
 
 
 # endpoints
